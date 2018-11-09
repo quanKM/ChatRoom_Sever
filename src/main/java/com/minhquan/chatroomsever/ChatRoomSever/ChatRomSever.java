@@ -19,14 +19,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import Model.User;
 import Model.Message;
 import Model.MessageType;
+import java.nio.ByteBuffer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+
 /**
  *
  * @author Minh Quan
  */
-public class ChatRomSever extends WebSocketServer  {
+public class ChatRomSever extends WebSocketServer {
+
     private final static Logger logger = LogManager.getLogger(ChatRomSever.class);
 
     private HashMap<WebSocket, User> users;
@@ -41,6 +44,7 @@ public class ChatRomSever extends WebSocketServer  {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
+
         conns.add(webSocket);
 
         logger.info("Connection established from: " + webSocket.getRemoteSocketAddress().getHostString());
@@ -63,10 +67,13 @@ public class ChatRomSever extends WebSocketServer  {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-       
+
         ObjectMapper mapper = new ObjectMapper();
+
         try {
+            System.out.println(message);
             Message msg = mapper.readValue(message, Message.class);
+
             switch (msg.getType()) {
                 case USER_JOINED:
                     addUser(new User(msg.getUser().getName()), conn);
@@ -76,6 +83,8 @@ public class ChatRomSever extends WebSocketServer  {
                     break;
                 case TEXT_MESSAGE:
                     broadcastMessage(msg);
+                case IMAGE_MESSAGE:
+                    break;
             }
 
             System.out.println("Message from user: " + msg.getUser() + ", text: " + msg.getData() + ", type:" + msg.getType());
@@ -83,6 +92,11 @@ public class ChatRomSever extends WebSocketServer  {
         } catch (IOException e) {
             logger.info(e.getMessage());
         }
+    }
+
+    @Override
+    public void onMessage(WebSocket conn, ByteBuffer message) {
+        System.out.println(conn + ": " + message);
     }
 
     @Override
@@ -137,6 +151,7 @@ public class ChatRomSever extends WebSocketServer  {
     }
 
     public static void main(String[] args) {
+
         int port;
         try {
             port = Integer.parseInt(System.getenv("PORT"));

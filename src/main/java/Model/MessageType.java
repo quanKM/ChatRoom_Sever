@@ -14,4 +14,5 @@ public enum MessageType {
     TEXT_MESSAGE, 
     USER_LEFT, 
     USER_JOINED_ACK,
+    IMAGE_MESSAGE,
 }
