@@ -19,8 +19,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import Model.User;
 import Model.Message;
 import Model.MessageType;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import org.java_websocket.WebSocket;
+import java.nio.charset.Charset;
+import java.util.logging.Level;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
@@ -71,7 +74,6 @@ public class ChatRomSever extends WebSocketServer {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            System.out.println(message);
             Message msg = mapper.readValue(message, Message.class);
 
             switch (msg.getType()) {
@@ -83,7 +85,9 @@ public class ChatRomSever extends WebSocketServer {
                     break;
                 case TEXT_MESSAGE:
                     broadcastMessage(msg);
+                    break;
                 case IMAGE_MESSAGE:
+                    broadcastMessage(msg);
                     break;
             }
 
@@ -97,6 +101,7 @@ public class ChatRomSever extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, ByteBuffer message) {
         System.out.println(conn + ": " + message);
+        broadcastByte(message);
     }
 
     @Override
@@ -118,6 +123,18 @@ public class ChatRomSever extends WebSocketServer {
             }
         } catch (JsonProcessingException e) {
             logger.info("Cannot convert message to json.");
+        }
+    }
+
+    private void broadcastByte(ByteBuffer msg) {
+        try {
+
+            System.out.println();
+            for (WebSocket sock : conns) {
+                sock.send(msg);
+            }
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
