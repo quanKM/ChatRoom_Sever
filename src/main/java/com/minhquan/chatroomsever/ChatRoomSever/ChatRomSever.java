@@ -127,11 +127,18 @@ public class ChatRomSever extends WebSocketServer {
     }
 
     private void broadcastByte(ByteBuffer msg) {
+        String converted = null;
+        try {
+            converted = new String(msg.array(), "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            java.util.logging.Logger.getLogger(ChatRomSever.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println(converted);
         try {
 
             System.out.println();
             for (WebSocket sock : conns) {
-                sock.send(msg);
+                sock.send(converted);
             }
         } catch (Exception e) {
             System.err.println(e);
